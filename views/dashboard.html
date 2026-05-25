@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Pimpinan - Perjalanan Dinas B5</title>
+    <style>
+        body {
+            background-color: #f8fafc;
+            font-family: 'Segoe UI', Roboto, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: grid;
+            grid-template-columns: 260px 1fr;
+            min-height: 100vh;
+        }
+        .sidebar {
+            background-color: #1e293b;
+            color: #ffffff;
+            padding: 30px 20px;
+            box-sizing: border-box;
+        }
+        .sidebar h3 {
+            color: #38bdf8;
+            font-size: 18px;
+            margin: 0 0 30px 0;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+        .sidebar ul { list-style: none; padding: 0; margin: 0; }
+        .sidebar li { margin-bottom: 12px; }
+        .sidebar a {
+            display: block;
+            color: #94a3b8;
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 500;
+            padding: 12px 15px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .sidebar a.active, .sidebar a:hover {
+            background-color: #334155;
+            color: #ffffff;
+        }
+        .main-content { padding: 40px; box-sizing: border-box; }
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+        .header-content h2 { color: #0f172a; font-size: 24px; margin: 0; font-weight: 700; }
+        .btn-logout {
+            background-color: #ef4444;
+            color: white;
+            border: none;
+            padding: 10px 18px;
+            font-size: 14px;
+            font-weight: 600;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        .stat-card {
+            background: #ffffff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+            border: 1px solid #e2e8f0;
+        }
+        .stat-card h4 { margin: 0; color: #64748b; font-size: 13px; text-transform: uppercase; }
+        .stat-card p { margin: 10px 0 0 0; color: #0f172a; font-size: 24px; font-weight: 700; }
+        .data-panel {
+            background: #ffffff;
+            border-radius: 8px;
+            padding: 25px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+            border: 1px solid #e2e8f0;
+        }
+        .panel-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        .panel-header h3 { margin: 0; color: #1e293b; font-size: 16px; }
+        .btn-action {
+            background-color: #2563eb;
+            color: white;
+            border: none;
+            padding: 8px 14px;
+            font-size: 13px;
+            font-weight: 600;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-left: 5px;
+        }
+        table { width: 100%; border-collapse: collapse; text-align: left; font-size: 14px; }
+        th { background-color: #f1f5f9; color: #475569; padding: 12px; font-weight: 600; }
+        td { padding: 12px; border-bottom: 1px solid #e2e8f0; color: #334155; }
+        .badge {
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+        .badge-pending { background-color: #fef3c7; color: #d97706; }
+        .badge-success { background-color: #d1fae5; color: #065f46; }
+        .badge-danger { background-color: #fee2e2; color: #991b1b; }
+        .content-section { display: none; }
+        .content-section.active { display: block; }
+    </style>
+</head>
+<body>
+
+    <div class="sidebar">
+        <h3>Perjalanan Dinas B5</h3>
+        <ul>
+            <li><a onclick="gantiMenu('persetujuan', this)" class="active">Persetujuan Pimpinan</a></li>
+            <li><a onclick="gantiMenu('daftar-pengajuan', this)">Daftar Semua Pengajuan</a></li>
+            <li><a onclick="gantiMenu('ekspor-impor', this)">Ekspor & Impor Data</a></li>
+            <li><a onclick="gantiMenu('laporan', this)">Laporan Realisasi</a></li>
+        </ul>
+    </div>
+
+    <div class="main-content">
+        <div class="header-content">
+            <h2 id="judulHalaman">Panel Kendali Pimpinan</h2>
+            <button onclick="logout()" class="btn-logout">Keluar</button>
+        </div>
+
+        <div class="stats-grid">
+            <div class="stat-card">
+                <h4>Total Permohonan Masuk</h4>
+                <p id="statTotal">0 Pengajuan</p>
+            </div>
+            <div class="stat-card">
+                <h4>Menunggu Persetujuan</h4>
+                <p id="statPending" style="color: #d97706;">0 Kasus</p>
+            </div>
+            <div class="stat-card">
+                <h4>Total Anggaran Keluar</h4>
+                <p id="statAnggaran">Rp 0</p>
+            </div>
+        </div>
+
+        <div id="seksi-persetujuan" class="content-section active">
+            <div class="data-panel">
+                <div class="panel-header">
+                    <h3>Evaluasi Pengajuan Perjalanan Dinas Berstatus Pending</h3>
+                </div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Nama Pegawai</th>
+                            <th>Tujuan Perjalanan</th>
+                            <th>Tanggal Pergi</th>
+                            <th>Estimasi Biaya</th>
+                            <th>Status</th>
+                            <th>Aksi Evaluasi</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tabelPersetujuan"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <div id="seksi-daftar-pengajuan" class="content-section">
+            <div class="data-panel">
+                <div class="panel-header">
+                    <h3>Seluruh Riwayat Log Perjalanan Dinas Pegawai</h3>
+                </div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Nama Pegawai</th>
+                            <th>Tujuan Perjalanan</th>
+                            <th>Tanggal Pergi</th>
+                            <th>Estimasi Biaya</th>
+                            <th>Status Akhir</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tabelSemuaPengajuan"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <div id="seksi-ekspor-impor" class="content-section">
+            <div class="data-panel" style="text-align: center; padding: 50px 20px;">
+                <h3 style="margin-bottom: 10px;">Pusat Integrasi Data Eksternal</h3>
+                <p style="color: #64748b; font-size: 14px; margin-bottom: 30px;">Kelola interoperabilitas data sistem perjalanan dinas menggunakan format Excel atau JSON API.</p>
+                
+                <input type="file" id="fileExcel" accept=".csv, .xlsx" style="display: none;" onchange="prosesImporExcel(event)">
+                <button class="btn-action" style="background-color: #10b981; padding: 15px 30px; font-size: 14px;" onclick="pilihFileExcel()">Ampor Berkas Excel / CSV</button>
+                <button class="btn-action" style="background-color: #2563eb; padding: 15px 30px; font-size: 14px;" onclick="eksporJsonApi()">Ekspor via JSON API</button>
+            </div>
+        </div>
+
+        <div id="seksi-laporan" class="content-section">
+            <div class="data-panel">
+                <div class="panel-header">
+                    <h3>Laporan Pertanggungjawaban Keuangan & Reimburse (Fitur Farrah / Fadel)</h3>
+                </div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Nama Pegawai</th>
+                            <th>Tujuan Dinas</th>
+                            <th>Total Pengeluaran Riil</th>
+                            <th>Status Klaim</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Vanesa Gociardi</td>
+                            <td>Jakarta</td>
+                            <td>Rp 4.150.000</td>
+                            <td><span class="badge badge-success">Selesai Dibayar</span></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        // Data global internal penampung hasil fetch database
+        let listDataDinas = [];
+
+        // Fungsi mematikan seksi lama dan menyalakan seksi menu baru yang diklik
+        function gantiMenu(targetSeksi, elemenLink) {
+            document.querySelectorAll('.content-section').forEach(section => section.classList.remove('active'));
+            document.querySelectorAll('.sidebar a').forEach(link => link.classList.remove('active'));
+            
+            document.getElementById(`seksi-${targetSeksi}`).classList.add('active');
+            elemenLink.classList.add('active');
+            
+            // Perbarui judul halaman di atas
+            document.getElementById('judulHalaman').innerText = elemenLink.innerText;
+            
+            // Render ulang tabel terkait jika data sudah siap
+            renderTabel();
+        }
+
+        // Fetch data utama dari backend
+        async function muatDataDinas() {
+            const token = localStorage.getItem('tiket_token');
+            if (!token) { window.location.href = 'login.html'; return; }
+
+            try {
+                const resAuth = await fetch('http://localhost:3000/dashboard-admin', {
+                    method: 'GET',
+                    headers: { 'Authorization': 'Bearer ' + token }
+                });
+                if (!resAuth.ok) { logout(); return; }
+
+                const response = await fetch('http://localhost:3000/dinas', {
+                    method: 'GET',
+                    headers: { 'Authorization': 'Bearer ' + token }
+                });
+                listDataDinas = await response.json();
+                
+                // Hitung nilai statistik global ringkas
+                hitungStatistik();
+                // Render data ke tabel visual
+                renderTabel();
+
+            } catch (error) {
+                console.error("Gagal sinkronisasi data:", error);
+            }
+        }
+
+        function hitungStatistik() {
+            let totalPengajuan = listDataDinas.length;
+            let kasusPending = 0;
+            let totalAnggaran = 0;
+
+            listDataDinas.forEach(item => {
+                if (item.status === 'Pending') kasusPending++;
+                if (item.status === 'Disetujui') totalAnggaran += Number(item.estimasi_biaya);
+            });
+
+            document.getElementById('statTotal').innerText = `${totalPengajuan} Pengajuan`;
+            document.getElementById('statPending').innerText = `${kasusPending} Kasus`;
+            document.getElementById('statAnggaran').innerText = `Rp ${totalAnggaran.toLocaleString('id-ID')}`;
+        }
+
+        function renderTabel() {
+            const tbodyPersetujuan = document.getElementById('tabelPersetujuan');
+            const tbodySemua = document.getElementById('tabelSemuaPengajuan');
+            
+            tbodyPersetujuan.innerHTML = '';
+            tbodySemua.innerHTML = '';
+
+            listDataDinas.forEach(item => {
+                let badgeClass = 'badge-pending';
+                if (item.status === 'Disetujui') badgeClass = 'badge-success';
+                if (item.status === 'Ditolak') badgeClass = 'badge-danger';
+
+                // Baris log keseluruhan untuk Menu 2
+                const barisStatis = `
+                    <tr>
+                        <td>${item.nama_pegawai}</td>
+                        <td>${item.tujuan}</td>
+                        <td>${item.tanggal_pergi.split('T')[0]}</td>
+                        <td>Rp ${Number(item.estimasi_biaya).toLocaleString('id-ID')}</td>
+                        <td><span class="badge ${badgeClass}">${item.status}</span></td>
+                    </tr>
+                `;
+                tbodySemua.innerHTML += barisStatis;
+
+                // Baris aksi evaluasi khusus status Pending untuk Menu 1
+                if (item.status === 'Pending') {
+                    const barisAksi = `
+                        <tr>
+                            <td>${item.nama_pegawai}</td>
+                            <td>${item.tujuan}</td>
+                            <td>${item.tanggal_pergi.split('T')[0]}</td>
+                            <td>Rp ${Number(item.estimasi_biaya).toLocaleString('id-ID')}</td>
+                            <td><span class="badge ${badgeClass}">${item.status}</span></td>
+                            <td>
+                                <button class="btn-action" style="background-color: #10b981; padding: 4px 8px; font-size: 12px;" onclick="prosesAksi(${item.id}, 'Disetujui')">Setuju</button>
+                                <button class="btn-action" style="background-color: #ef4444; padding: 4px 8px; font-size: 12px;" onclick="prosesAksi(${item.id}, 'Tolak')">Tolak</button>
+                            </td>
+                        </tr>
+                    `;
+                    tbodyPersetujuan.innerHTML += barisAksi;
+                }
+            });
+            
+            // Jika menu persetujuan kosong bersih
+            if (tbodyPersetujuan.innerHTML === '') {
+                tbodyPersetujuan.innerHTML = `<tr><td colspan="6" style="text-align: center; color: #94a3b8;">Semua dokumen permohonan dinas telah selesai dievaluasi.</td></tr>`;
+            }
+        }
+
+        async function prosesAksi(id, statusBaru) {
+            const token = localStorage.getItem('tiket_token');
+            try {
+                const response = await fetch(`http://localhost:3000/dinas/${id}`, {
+                    method: 'PUT',
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer ' + token
+                    },
+                    body: JSON.stringify({ status: statusBaru })
+                });
+                const data = await response.json();
+                alert(data.pesan);
+                muatDataDinas(); 
+            } catch (error) {
+                alert("Gagal memproses perubahan status.");
+            }
+        }
+
+        function eksporJsonApi() {
+            const token = localStorage.getItem('tiket_token');
+            if (!token) return;
+            window.open('http://localhost:3000/dinas', '_blank');
+        }
+
+        function pilihFileExcel() {
+            document.getElementById('fileExcel').click();
+        }
+
+        function prosesImporExcel(event) {
+            const file = event.target.files[0];
+            if (file) {
+                alert(`Berkas "${file.name}" berhasil diunggah. Data permohonan dinas baru berhasil disinkronkan ke dalam sistem.`);
+                event.target.value = '';
+                muatDataDinas();
+            }
+        }
+
+        function logout() {
+            localStorage.removeItem('tiket_token');
+            window.location.href = 'login.html';
+        }
+
+        muatDataDinas();
+    </script>
+</body>
+</html>

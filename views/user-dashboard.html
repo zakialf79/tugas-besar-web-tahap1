@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Portal Pegawai - Perjalanan Dinas B5</title>
+    <style>
+        body {
+            background-color: #f1f5f9;
+            font-family: 'Segoe UI', sans-serif;
+            margin: 0;
+            padding: 40px;
+        }
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+        .header-portal {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #ffffff;
+            padding: 20px 30px;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+            margin-bottom: 25px;
+        }
+        .header-portal h2 { margin: 0; font-size: 20px; color: #0f172a; }
+        .btn-danger {
+            background-color: #ef4444;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        .grid-layout {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 25px;
+        }
+        .card {
+            background: #ffffff;
+            padding: 25px;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        }
+        .card h3 { margin-top: 0; font-size: 16px; color: #1e293b; border-bottom: 2px solid #e2e8f0; padding-bottom: 10px; }
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; font-size: 13px; font-weight: 600; color: #475569; margin-bottom: 5px; }
+        .input-field {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #cbd5e1;
+            border-radius: 6px;
+            box-sizing: border-box;
+            background-color: #f8fafc;
+        }
+        .btn-primary {
+            width: 100%;
+            background-color: #2563eb;
+            color: white;
+            border: none;
+            padding: 12px;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <div class="header-portal">
+            <h2>Portal Pengajuan Perjalanan Dinas - Kelompok B5</h2>
+            <button onclick="logout()" class="btn-danger">Keluar</button>
+        </div>
+
+        <div class="grid-layout">
+            <div class="card">
+                <h3>Form Permohonan Dinas Baru</h3>
+                <form id="formDinas">
+                    <div class="form-group">
+                        <label>Kota Tujuan</label>
+                        <input type="text" id="inputTujuan" class="input-field" placeholder="Contoh: Jakarta / Bandung" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Tanggal Keberangkatan</label>
+                        <input type="date" id="inputTanggal" class="input-field" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Estimasi Biaya Saku (Rp)</label>
+                        <input type="number" id="inputBiaya" class="input-field" placeholder="Masukkan nominal" required>
+                    </div>
+                    <button type="submit" class="btn-primary">Kirim Permohonan</button>
+                </form>
+            </div>
+
+            <div class="card">
+                <h3>Status Permohonan Dinas Milik Anda</h3>
+                <div style="background-color: #f8fafc; padding: 15px; border-radius: 6px; border-left: 4px solid #3b82f6; margin-bottom: 15px;">
+                    <p style="margin: 0; font-size: 14px; font-weight: 600;">Status Terkini</p>
+                    <p style="margin: 5px 0 0 0; font-size: 12px; color: #64748b;">Silakan cek di panel pimpinan setelah mengirim data.</p>
+                </div>
+                <hr style="border: 0; border-top: 1px solid #e2e8f0; margin: 20px 0;">
+                <h3>Menu Pembagian Fitur Kelompok</h3>
+                <p style="font-size: 13px; color: #475569; line-height: 1.5;">
+                    • Fitur Kirim Laporan & Reimburse (Farrah)<br>
+                    • Fitur Ubah & Hapus Permohonan (Vanesa)<br>
+                    • Fitur Kelola Reimburse Pimpinan (Fadel)
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('formDinas').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const token = localStorage.getItem('tiket_token');
+            
+            const tujuan = document.getElementById('inputTujuan').value;
+            const tanggal_pergi = document.getElementById('inputTanggal').value;
+            const columnBiaya = document.getElementById('inputBiaya').value;
+
+            try {
+                const response = await fetch('http://localhost:3000/dinas', {
+                    method: 'POST',
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer ' + token
+                    },
+                    body: JSON.stringify({
+                        nama_pegawai: "Vanesa Gociardi", 
+                        tujuan: tujuan,
+                        tanggal_pergi: tanggal_pergi,
+                        estimasi_biaya: parseInt(columnBiaya)
+                    })
+                });
+                
+                const data = await response.json();
+                if(response.ok) {
+                    alert(data.pesan);
+                    document.getElementById('formDinas').reset();
+                } else {
+                    alert("Gagal mengirim.");
+                }
+            } catch (error) {
+                alert("Terjadi kesalahan koneksi server.");
+            }
+        });
+
+        function logout() {
+            localStorage.removeItem('tiket_token');
+            window.location.href = 'login.html';
+        }
+    </script>
+</body>
+</html>
